@@ -1,14 +1,17 @@
 #!/usr/bin/env python3
-# anims/dave.py — Дэйв: атлас webdave (y=0), анимации, физика
+"""
+anims/dave.py — Дэйв: игрок
+НОВАЯ АРХИТЕКТУРА: функции вместо класса
+"""
+from anims import register_object_type
 import pygame
 
-NAME = 'dave'
-FALLBACK = 'dave_idle'
-DEFAULT = 'idle'
+# Константы
 HITBOX = (36, 48)
+ANCHOR_TYPE = 'ground'
+LAYER = 1  # LAYER_PLAYER
 
 ATLAS = [
-    # name, x, y, w, h  — все на y=0 (первая строка атласа)
     ('dave_idle', 0, 0, 48, 64),
     ('dave_walk1', 48, 0, 48, 64),
     ('dave_walk2', 96, 0, 48, 64),
@@ -33,110 +36,155 @@ ANIMS = {
     'aimdown': ((['dave_aimdown'],), 1),
 }
 
-def anim_state(p):
-    if p.get('aim_up', False):
-        return 'aimup'
-    if p.get('aim_down', False):
-        return 'aimdown'
-    if p['cool'] > 4:
-        return 'shoot'
-    if not p['onG']:
-        return 'fall' if p['vy'] > 0 else 'jump'
-    if abs(p['vx']) > .3:
-        return 'walk'
-    return 'idle'
 
-def update(p, pressed, held, ctx):
+def init(obj, params):
+    """Инициализация объекта Дэйв."""
+    obj['cool'] = 0
+    obj['inv'] = 0
+    obj['drop'] = 0
+    obj['wasG'] = False
+    obj['aim_up'] = False
+    obj['aim_down'] = False
+    return ['dave_idle', 'dave_walk1', 'dave_walk2', 'dave_walk3', 'dave_walk4', 
+            'dave_jump', 'dave_fall', 'dave_shoot', 'dave_shoot2', 'dave_aimup', 'dave_aimdown']
+
+
+def behave(obj, input_data, ctx):
+    """Логика управления Дэйвом."""
+    if ctx is None:
+        return
+    
+    pressed = input_data.get('pressed', []) if input_data else []
+    held = input_data.get('held', {}) if input_data else {}
+    
     # --- УПРАВЛЕНИЕ ---
-    left = held[pygame.K_LEFT] or held[pygame.K_a]
-    right = held[pygame.K_RIGHT] or held[pygame.K_d]
+    left = held.get(pygame.K_LEFT, False) or held.get(pygame.K_a, False)
+    right = held.get(pygame.K_RIGHT, False) or held.get(pygame.K_d, False)
     jump = pygame.K_SPACE in pressed
-    p['aim_up'] = held[pygame.K_UP] or held[pygame.K_w]
-    p['aim_down'] = held[pygame.K_DOWN] or held[pygame.K_s]
-    drop = p['aim_down'] and jump
-
+    obj['aim_up'] = held.get(pygame.K_UP, False) or held.get(pygame.K_w, False)
+    obj['aim_down'] = held.get(pygame.K_DOWN, False) or held.get(pygame.K_s, False)
+    drop = obj['aim_down'] and jump
+    
     # --- ДВИЖЕНИЕ ---
-    acc = .5 if p['onG'] else .3
+    acc = .5 if obj['onG'] else .3
     vmax = 2.3
     if left:
-        p['vx'] = max(p['vx'] - acc, -vmax)
-        p['face'] = -1
+        obj['vx'] = max(obj['vx'] - acc, -vmax)
+        obj['face'] = -1
     elif right:
-        p['vx'] = min(p['vx'] + acc, vmax)
-        p['face'] = 1
+        obj['vx'] = min(obj['vx'] + acc, vmax)
+        obj['face'] = 1
     else:
-        f = .4 if p['onG'] else .1
-        if p['vx'] > 0:
-            p['vx'] = max(0, p['vx'] - f)
-        elif p['vx'] < 0:
-            p['vx'] = min(0, p['vx'] + f)
-
+        f = .4 if obj['onG'] else .1
+        if obj['vx'] > 0:
+            obj['vx'] = max(0, obj['vx'] - f)
+        elif obj['vx'] < 0:
+            obj['vx'] = min(0, obj['vx'] + f)
+    
     # --- ТАЙМЕРЫ ---
-    if p['drop'] > 0:
-        p['drop'] -= 1
-    if p['inv'] > 0:
-        p['inv'] -= 1
-    if p['cool'] > 0:
-        p['cool'] -= 1
-
-    # --- ФИЗИКА ---
-    ctx.update_player_physics(p)
-
+    if obj.get('drop', 0) > 0:
+        obj['drop'] -= 1
+    if obj.get('inv', 0) > 0:
+        obj['inv'] -= 1
+    if obj.get('cool', 0) > 0:
+        obj['cool'] -= 1
+    
     # --- ПРЫЖОК ---
-    if jump and p['onG'] and p['drop'] <= 0:
-        p['vy'] = -6.5
-        ctx.play('jump')
-        ctx.add_parts(p['x'] + 6, p['y'] + 28, 5, '#8a7f9a', 1, .05)
-
+    if jump and obj['onG'] and obj.get('drop', 0) <= 0:
+        obj['vy'] = -6.5
+        if hasattr(ctx, 'play'):
+            ctx.play('jump')
+        if hasattr(ctx, 'add_parts'):
+            ctx.add_parts(obj['x'] + 6, obj['y'] + 28, 5, '#8a7f9a', 1, .05)
+    
     # --- СПРЫГИВАНИЕ ---
-    if drop and p['onG'] and p.get('drop', 0) <= 0:
-        ty = int((p['y'] + p['h'] + 1) // ctx.TS)
+    if drop and obj['onG'] and obj.get('drop', 0) <= 0:
+        ty = int((obj['y'] + obj['h'] + 1) // ctx.TS)
         on_plat = False
-        for tx in range(int(p['x'] // ctx.TS), int((p['x'] + p['w']) // ctx.TS) + 1):
+        for tx in range(int(obj['x'] // ctx.TS), int((obj['x'] + obj['w']) // ctx.TS) + 1):
             if 0 <= ty < ctx.ROWS and ctx.grid[ty][tx] == 2 and ctx.tile_at(tx, ty) != 1:
                 on_plat = True
                 break
         if on_plat:
-            p['drop'] = 12
-            p['onG'] = False
-            p['vy'] = 1.0
-
+            obj['drop'] = 12
+            obj['onG'] = False
+            obj['vy'] = 1.0
+    
     # --- ЗВУК ПРИЗЕМЛЕНИЯ ---
-    if p['onG'] and not p['wasG']:
-        ctx.play('land')
-    p['wasG'] = p['onG']
-
+    if obj['onG'] and not obj.get('wasG', False):
+        if hasattr(ctx, 'play'):
+            ctx.play('land')
+    obj['wasG'] = obj['onG']
+    
     # --- ВЫСТРЕЛ ---
-    if (held[pygame.K_x] or held[pygame.K_j] or held[pygame.K_k]) and p['cool'] <= 0:
-        p['cool'] = 18
-        ctx.play('shoot')
-        ctx.shake(1.2)
-        p['vx'] -= p['face'] * 1.8
-        import aim
-        target, hit_pos, hit_type = aim.find_target_in_cone(
-            p, ctx.enemies, ctx.grid, ctx.ROWS, ctx.COLS
-        )
-        if target:
-            target['hp'] -= 1
-            target['flash'] = 8
-            ctx.play('hit')
-            ctx.add_parts(hit_pos[0], hit_pos[1], 10, '#ffd23f', 2.0)
-            if target['hp'] <= 0:
-                # Без начисления очков
-                ctx.play('kill')
-                ctx.add_parts(hit_pos[0], hit_pos[1], 20, '#ff4444', 3.0)
-                if target in ctx.enemies:
-                    ctx.enemies.remove(target)
-        elif hit_type in ('wall', 'floor'):
-            ctx.add_parts(hit_pos[0], hit_pos[1], 6, '#ffd23f', 1.5)
+    shoot_keys = [pygame.K_x, pygame.K_j, pygame.K_k]
+    if any(held.get(k, False) for k in shoot_keys) and obj.get('cool', 0) <= 0:
+        obj['cool'] = 18
+        if hasattr(ctx, 'play'):
+            ctx.play('shoot')
+        if hasattr(ctx, 'shake'):
+            ctx.shake(1.2)
+        obj['vx'] -= obj['face'] * 1.8
 
-    # --- ШИПЫ ---
-    for s in ctx.spikes:
-        if ctx.p_rect(p).colliderect(pygame.Rect(s['x'], s['y'], 16, 16).inflate(-4, -6).move(0, 1)):
-            ctx.hurt(s['x'] + 8)
-            p['vy'] = -5
-            break
 
-    # --- ПАДЕНИЕ ЗА КАРТУ ---
-    if p['y'] > ctx.ROWS * ctx.TS + 24:
-        ctx.kill()
+def transform(obj):
+    """Обработка коллизий для Дэйва."""
+    for col in obj.get('collisions', []):
+        target = col.get('target')
+        normal = col.get('normal', (0, 0))
+        depth = col.get('depth', 0)
+        
+        # Обработка коллизий с врагами (урон)
+        if target and hasattr(target, 'tags') and 'damage' in target.get('tags', []):
+            if obj.get('inv', 0) <= 0:
+                obj['inv'] = 30
+                obj['vy'] = -5
+                if hasattr(obj, '_ctx') and hasattr(obj._ctx, 'hurt'):
+                    obj._ctx.hurt(target.x)
+        
+        # Обработка подбора предметов
+        if target and hasattr(target, 'tags') and 'collectible' in target.get('tags', []):
+            pass
+    
+    obj['collisions'] = []
+
+
+def get_sprite(obj):
+    """Возвращает имя текущего спрайта."""
+    state = 'idle'
+    
+    if obj.get('aim_up', False):
+        state = 'aimup'
+    elif obj.get('aim_down', False):
+        state = 'aimdown'
+    elif obj.get('cool', 0) > 4:
+        state = 'shoot'
+    elif not obj['onG']:
+        state = 'fall' if obj['vy'] > 0 else 'jump'
+    elif abs(obj['vx']) > .3:
+        state = 'walk'
+    
+    if state not in ANIMS:
+        state = 'idle'
+    
+    anim_data = ANIMS[state]
+    sequences = anim_data[0]
+    speed = anim_data[1] if len(anim_data) > 1 else 1
+    
+    seq = sequences[0]
+    frame_idx = (obj.get('t', 0) // speed) % len(seq)
+    return seq[frame_idx]
+
+
+# Регистрируем тип объекта
+register_object_type(
+    name='dave',
+    init_func=init,
+    behave_func=behave,
+    transform_func=transform,
+    get_sprite_func=get_sprite,
+    hitbox=HITBOX,
+    anchor_type=ANCHOR_TYPE,
+    layer=LAYER,
+    tags=['player'],
+)

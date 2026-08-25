@@ -1,13 +1,39 @@
-# anims/ghost.py — призрак: синусоидальный полёт
-import math
-NAME = 'ghost'; FALLBACK = 'ghost1'; DEFAULT = 'fly'
-HITBOX = (12, 13)
-ATLAS = []
-ANIMS = {'fly': ((['ghost1', 'ghost2'],), 3)}
+#!/usr/bin/env python3
+"""anims/ghost.py — Призрак: летающий враг."""
+from anims import register_object_type
 
-def anim_state(e): return 'fly'
+HITBOX = (20, 24)
+ANCHOR_TYPE = 'center'
+LAYER = 2
+NAME = 'ghost'
 
-def update(e, ctx):
-    e['x'] = e['sx'] + math.sin(e['t'] * .013) * 70
-    e['y'] = e['sy'] + math.sin(e['t'] * .05) * 9
-    e['face'] = 1 if math.cos(e['t'] * .013) > 0 else -1
+def init(obj, params):
+    obj['speed'] = 0.3
+    obj['has_gravity'] = False
+    return ['ghost1', 'ghost2', 'glow_ghost']
+
+def behave(obj, input_data, ctx):
+    if ctx is None:
+        return
+    # Лёгкое парение
+    obj['vy'] = min(2, max(-2, obj['vy'] + 0.1 * (obj.get('t', 0) % 10 - 5)))
+    obj['x'] += obj.get('vx', 0)
+    obj['y'] += obj['vy']
+
+def transform(obj):
+    obj['collisions'] = []
+
+def get_sprite(obj):
+    return 'ghost1'
+
+register_object_type(
+    name=NAME,
+    init_func=init,
+    behave_func=behave,
+    transform_func=transform,
+    get_sprite_func=get_sprite,
+    hitbox=HITBOX,
+    anchor_type=ANCHOR_TYPE,
+    layer=LAYER,
+    tags=['enemy', 'damage', 'flying'],
+)
