@@ -15,6 +15,11 @@ ASSETS_DIR = os.path.join(BASE, 'assets')
 # Статические/UI/декор спрайты (не из anims.sprites_map)
 STATIC_SPRITES = (
     'dave_door1', 'dave_door2', 'dave_door3', 'dave_door4',
+    'dave_reload1', 'dave_reload2',
+    'dave_death_zombie1', 'dave_death_zombie2', 'dave_death_zombie3',
+    'dave_death_zombie4', 'dave_death_zombie5',
+    'dave_death_knife1', 'dave_death_knife2', 'dave_death_knife3',
+    'dave_death_knife4',
     'death_00', 'death_01', 'death_02', 'death_03', 'death_04',
     'death_05', 'death_06', 'death_07', 'death_08', 'death_09',
     'death_10', 'death_11', 'death_12', 'death_13', 'death_14',
@@ -50,6 +55,7 @@ ADDITIVE_SPRITES = (
 SOUNDS = (
     'jump', 'shoot', 'hit', 'kill', 'gem', 'key',
     'heart', 'hurt', 'die', 'land', 'door',
+    'reload', 'noAmmo',
 )
 MUSIC_NAME = 'music'
 

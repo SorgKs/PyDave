@@ -15,8 +15,26 @@ class TileMap:
         self.cols = cols
         self.grid = [['' for _ in range(cols)] for _ in range(rows)]
 
-        # Плейсхолдеры объектов — заменяем на обои, чтобы не было дыр
-        object_placeholders = set('DKSoTdGBH')
+        # Плейсхолдеры объектов — заменяем на фон только при достаточном окружении
+        object_placeholders = set('DKSoTdGBHZk')
+
+        def bg_neighbors(y, x):
+            """Считает соседей-фон (A или .) в исходной карте."""
+            air = wp = 0
+            for dy, dx in ((-1, 0), (1, 0), (0, -1), (0, 1)):
+                ny, nx = y + dy, x + dx
+                if 0 <= ny < rows and 0 <= nx < cols:
+                    nch = map_lines[ny].ljust(cols, '.')[nx]
+                    if nch == 'A':
+                        air += 1
+                    elif nch == '.':
+                        wp += 1
+            return air + wp, air, wp
+
+        def placeholder_tile(x, y, air, wp):
+            if air > wp:
+                return 'air'
+            return 'wallpaper_a' if (x + y) % 2 == 0 else 'wallpaper_b'
 
         for y, row in enumerate(map_lines):
             row = row.ljust(cols, '.')  # дополняем точками
@@ -76,9 +94,12 @@ class TileMap:
                     self.grid[y][x] = 'wallpaper_a' if (x + y) % 2 == 0 else 'wallpaper_b'
                     x += 1
                 elif ch in object_placeholders:
-                    # Плейсхолдеры объектов (D, K, S, Z, G, B, T, o, H, d)
-                    # заменяем на обои, чтобы не было дыр в фоне
-                    self.grid[y][x] = 'wallpaper_a' if (x + y) % 2 == 0 else 'wallpaper_b'
+                    # Плейсхолдер → фон, если рядом ≥2 клеток воздуха или обоев
+                    total, air, wp = bg_neighbors(y, x)
+                    if total >= 2:
+                        self.grid[y][x] = placeholder_tile(x, y, air, wp)
+                    else:
+                        self.grid[y][x] = ''
                     x += 1
                 else:
                     # Любые другие символы — пустота

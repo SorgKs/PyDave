@@ -25,7 +25,7 @@ def init(obj, params):
     obj['dead'] = False
 
 
-def behave(obj, keys, map_grid):
+def behave(obj, keys, map_grid, objects_list=None):
     if obj.get('dead'):
         obj['vx'] = 0
         obj['vy'] = 0
@@ -42,7 +42,8 @@ def behave(obj, keys, map_grid):
 def transform(obj):
     for tr in obj.get('triggers', []):
         if isinstance(tr, dict) and tr.get('name') == 'get_shot':
-            obj['hp'] = obj.get('hp', 1) - 1
+            dmg = tr.get('damage', 1)
+            obj['hp'] = obj.get('hp', 1) - dmg
             obj['flash'] = 12
             if obj['hp'] <= 0:
                 obj['dead'] = True

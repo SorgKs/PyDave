@@ -160,6 +160,8 @@ for mod in anims.ALL:
         cut_from(px, name, x0, y0, fw, fh, W, H)
 for i in range(9):
     cut_from(px, 'ammo_%d' % i, 1456 + 70 * i, 0, 70, 32, W, H)
+cut_from(px, 'dave_reload1', 768, 0, 48, 64, W, H, scale=1)
+cut_from(px, 'dave_reload2', 816, 0, 48, 64, W, H, scale=1)
 for i, x in enumerate((2086, 2122, 2158, 2194)):
     cut_from(px, 'dave_door%d' % (i + 1), x, 0, 36, 64, W, H)
 

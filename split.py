@@ -11,11 +11,10 @@ import anims.zombie
 import anims.ghost
 import anims.skull
 
-# Список модулей, в которых есть ATLAS
 MODULES = [anims.dave, anims.zombie, anims.ghost, anims.skull]
 
-# Путь к основному атласу
-INPUT_PATH = "assets/sheets/webdave.png"
+# Путь к основному атласу (dave.png из webdave)
+INPUT_PATH = "assets/sheets/dave.png"
 OUTPUT_DIR = "assets/sprites"
 COLORKEY = BG_TRANSPARENT
 

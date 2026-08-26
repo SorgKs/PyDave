@@ -55,6 +55,7 @@ def check_static_collision(obj, prev_bottom_y):
     """Разрешает коллизии со статикой; пишет collisions. Координаты в тайлах."""
     collided = False
     obj['hitW'] = False
+    obj['hitE'] = False
 
     obj['y'] += obj['vy']
     obj['onG'] = False
@@ -76,7 +77,8 @@ def check_static_collision(obj, prev_bottom_y):
             break
         if tile_type == 2:
             platform_y = float(ty)
-            if obj['vy'] >= 0 and prev_bottom_y <= platform_y + 0.05:
+            if (obj['vy'] >= 0 and prev_bottom_y <= platform_y + 0.05
+                    and obj.get('drop', 0) <= 0):
                 land_y = platform_y
                 break
 
@@ -234,6 +236,10 @@ def resolve_object_collisions(objects_list):
                         obj['vx'] *= -0.3
                     if other['vx'] * (-nx) > 0:
                         other['vx'] *= -0.3
+                if ('enemy' in obj.get('tags', [])
+                        and 'enemy' in other.get('tags', [])):
+                    obj['hitE'] = True
+                    other['hitE'] = True
             else:
                 depth = overlap_y
                 nx = 0.0

@@ -104,6 +104,8 @@ parts, texts = [], []
 view = pygame.Surface((VW, VH))
 # ключ спрайта за кадр: id(obj) → str
 frame_sprites = {}
+# сцена смерти от зомби: замороженные спрайты + таймер анимации
+death_scene = None
 
 
 # ============================================================================
@@ -147,7 +149,7 @@ def build_keys(pressed, held):
 # ============================================================================
 
 def reset_game():
-    global state, state_t, all_objects, player_obj
+    global state, state_t, all_objects, player_obj, death_scene
     global spikes, torches, hearts, door, doors_decor, spawn_pos
 
     data = levels.parse_objects(lvl.MAP)
@@ -162,6 +164,7 @@ def reset_game():
 
     parts.clear()
     texts.clear()
+    death_scene = None
     state = 'play'
     state_t = 0
 
@@ -194,14 +197,58 @@ def shake_amt(v):
 
 
 def kill_player():
-    global state, state_t
+    global state, state_t, death_scene
     if state != 'play':
         return
     play('die')
     shake_amt(9)
     add_parts(player_obj['x'], player_obj['y'], 26, '#e23b4e', 0.2)
+    death_scene = None
     state = 'gameover'
     state_t = 0
+
+
+def start_zombie_death(killer):
+    """Смерть от зомби: заморозка сцены, анимация поверх (webdave playerDeathZombie)."""
+    global state, state_t, death_scene, frame_sprites
+    if state != 'play':
+        return
+    play('die')
+    shake_amt(9)
+    add_parts(player_obj['x'], player_obj['y'], 26, '#e23b4e', 0.2)
+
+    frozen = {
+        id(player_obj): frame_sprites.get(id(player_obj)),
+    }
+    if killer is not None:
+        frozen[id(killer)] = frame_sprites.get(id(killer))
+
+    death_scene = {
+        'frozen': frozen,
+        'cx': player_obj['x'],
+        'cy': player_obj['y'] - player_obj['h'] * 0.5,
+        't': 0,
+    }
+    state = 'death_zombie'
+    state_t = 0
+
+
+def _death_zombie_frame():
+    """Текущий кадр анимации смерти от зомби."""
+    if not death_scene:
+        return None
+    frames = anims.dave.DEATH_ZOMBIE_FRAMES
+    speed = anims.dave.DEATH_ZOMBIE_SPEED
+    idx = min(death_scene['t'] // speed, len(frames) - 1)
+    return frames[idx]
+
+
+def _death_zombie_finished():
+    if not death_scene:
+        return False
+    n = len(anims.dave.DEATH_ZOMBIE_FRAMES)
+    total = n * anims.dave.DEATH_ZOMBIE_SPEED + anims.dave.DEATH_ZOMBIE_HOLD
+    return death_scene['t'] >= total
 
 
 def _shot_particles(fx):
@@ -209,8 +256,11 @@ def _shot_particles(fx):
     if fx.get('kind') not in ('enemy', 'wall'):
         return
     x1, y1 = fx['x'], fx['y']
-    face = fx.get('face', 1)
-    toward = -face
+    if fx.get('dir_x') is not None:
+        base = math.atan2(fx.get('dir_y', 0), fx['dir_x'])
+    else:
+        face = fx.get('face', 1)
+        base = math.pi if face > 0 else 0.0
     colors = fx.get('colors') or ('#000000', '#ffffff')
     c0 = colors[0]
     c1 = colors[1] if len(colors) > 1 else colors[0]
@@ -221,10 +271,11 @@ def _shot_particles(fx):
         # скорости в тайлах/кадр (короткая дистанция, широкий угол)
         spd = 0.035 + random.random() * 0.055
         phi = (random.random() - 0.5) * 3.8
+        ang = base + phi
         parts.append({
             'x': float(x1), 'y': float(y1),
-            'vx': toward * spd * math.cos(phi),
-            'vy': spd * math.sin(phi),
+            'vx': spd * math.cos(ang),
+            'vy': spd * math.sin(ang),
             'g': 0.001,
             'life': 0,
             'max': 18 + random.random() * 12,
@@ -242,20 +293,24 @@ def _handle_dave_side_effects(obj):
         play('land')
         obj['pending_land_sfx'] = False
     if obj.get('pending_shoot'):
-        play('shoot')
-        shake_amt(1.2)
-        anims.dave.shot(obj, surface_grid, all_objects)
-        fx = obj.get('pending_shot_fx')
-        if fx:
+        fx = anims.dave.fire_shot_if_ready(obj, surface_grid, all_objects)
+        if fx is not None:
+            play('shoot')
+            shake_amt(1.2)
             _shot_particles(fx)
             if fx.get('kind') == 'enemy':
                 play('hit')
             obj['pending_shot_fx'] = None
-        obj['pending_shoot'] = False
+    if obj.get('pending_reload_sfx'):
+        play('reload')
+        obj['pending_reload_sfx'] = False
+    if obj.get('pending_no_ammo_sfx'):
+        play('noAmmo')
+        obj['pending_no_ammo_sfx'] = False
 
 
 def update(pressed, held):
-    global state, state_t, gtime, cam_x, cam_y, shake, frame_sprites
+    global state, state_t, gtime, cam_x, cam_y, shake, frame_sprites, death_scene
 
     gtime += 1
     state_t += 1
@@ -265,7 +320,7 @@ def update(pressed, held):
         if AUDIO and MUSIC:
             MUSIC.set_volume(0 if MUTED[0] else MUSIC_VOL)
 
-    if pygame.K_r in pressed and state in ('play', 'gameover', 'win'):
+    if pygame.K_r in pressed and state in ('play', 'gameover', 'win', 'death_zombie'):
         reset_game()
 
     if pygame.K_p in pressed:
@@ -278,6 +333,12 @@ def update(pressed, held):
     if state == 'title':
         if pygame.K_RETURN in pressed or pygame.K_SPACE in pressed:
             reset_game()
+    elif state == 'death_zombie':
+        death_scene['t'] += 1
+        if _death_zombie_finished():
+            death_scene = None
+            state = 'gameover'
+            state_t = 0
     elif state in ('gameover', 'win'):
         if pygame.K_RETURN in pressed:
             reset_game()
@@ -291,7 +352,7 @@ def update(pressed, held):
             if obj.get('flash', 0) > 0:
                 obj['flash'] -= 1
             k = keys if obj is player_obj else empty_keys
-            behave(obj, k, surface_grid)
+            behave(obj, k, surface_grid, all_objects)
             if obj is player_obj:
                 _handle_dave_side_effects(obj)
 
@@ -308,7 +369,11 @@ def update(pressed, held):
                 frame_sprites[id(obj)] = sprite_key
 
         if player_obj.get('dead'):
-            kill_player()
+            killer = player_obj.pop('death_killer', None)
+            if killer and killer.get('type') == 'zombie':
+                start_zombie_death(killer)
+            else:
+                kill_player()
             player_obj['dead'] = False
 
         # Смерть врагов (HP==0 после get_shot в transform)
@@ -362,17 +427,18 @@ def update(pressed, held):
     if state == 'title':
         tx = 40 + (math.sin(gtime * 0.004) * 0.5 + 0.5) * (COLS * TS - VW - 80)
         ty = 32 + math.sin(gtime * 0.002) * 20
-    else:
+        cam_x += (tx - cam_x) * 0.1
+        cam_y += (ty - cam_y) * 0.12
+    elif state != 'death_zombie':
         # Камера от якоря игрока (тайлы → пиксели)
         px = player_obj['x'] * TS
         py = player_obj['y'] * TS
         tx = px - VW / 2 + player_obj['face'] * 28
         ty = py - VH / 2 - 40
-
-    cam_x += (tx - cam_x) * 0.1
-    cam_y += (ty - cam_y) * 0.12
-    cam_x = max(0, min(cam_x, COLS * TS - VW))
-    cam_y = max(0, min(cam_y, ROWS * TS - VH))
+        cam_x += (tx - cam_x) * 0.1
+        cam_y += (ty - cam_y) * 0.12
+        cam_x = max(0, min(cam_x, COLS * TS - VW))
+        cam_y = max(0, min(cam_y, ROWS * TS - VH))
 
 
 def blit(surf, im, x, y, flip=False, alpha=None):
@@ -430,6 +496,7 @@ def render_frame():
                            hy - oy - im.get_height() // 2 + 8))
 
     # Объекты (кроме скрытого игрока на title/gameover)
+    frozen = death_scene.get('frozen', {}) if death_scene else {}
     for obj in all_objects:
         if obj.get('taken'):
             continue
@@ -438,7 +505,7 @@ def render_frame():
         if obj is player_obj and state == 'play' and obj.get('inv', 0) > 0 and gtime % 6 < 3:
             continue
 
-        key = frame_sprites.get(id(obj))
+        key = frozen.get(id(obj), frame_sprites.get(id(obj)))
         if not key or key not in I:
             continue
         im = WHITE[key] if obj.get('flash', 0) > 0 and key in WHITE else I[key]
@@ -449,6 +516,16 @@ def render_frame():
             view.blit(I['glow_ghost'], (rx - 8, ry - 8), special_flags=pygame.BLEND_ADD)
 
         blit(view, im, rx, ry, obj.get('face', 1) < 0)
+
+    # Анимация смерти от зомби поверх замороженной сцены
+    if state == 'death_zombie' and death_scene:
+        dkey = _death_zombie_frame()
+        if dkey and dkey in I:
+            im = I[dkey]
+            sw, sh = im.get_width(), im.get_height()
+            cx = death_scene['cx'] * TS
+            cy = death_scene['cy'] * TS
+            view.blit(im, (int(cx - sw / 2 - ox), int(cy - sh / 2 - oy)))
 
     for p in parts:
         a = max(0, 1 - p['life'] / p['max'])
@@ -469,6 +546,7 @@ def render_frame():
             im.set_alpha(int(255 * max(0, 1 - t['life'] / 60)))
             screen.blit(im, ((t['x'] * TS - ox) * SCALE, (t['y'] * TS - oy) * SCALE))
 
+    draw_hud()
     draw_overlays()
 
 
@@ -476,6 +554,18 @@ def overlay(col=(5, 3, 12, 150)):
     s = pygame.Surface((WW, WH), pygame.SRCALPHA)
     s.fill(col)
     screen.blit(s, (0, 0))
+
+
+def draw_hud():
+    """Иконка патронов в левом верхнем углу экрана."""
+    if state != 'play':
+        return
+    ammo = player_obj.get('ammo', 0)
+    key = 'ammo_%d' % ammo
+    if key not in I:
+        return
+    im = I[key]
+    screen.blit(im, (int(20 * SCALE), int(20 * SCALE)))
 
 
 def draw_overlays():

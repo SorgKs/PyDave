@@ -103,11 +103,11 @@ def compute_offsets(obj):
         raise ValueError(f"Неизвестный anchor_type: {anchor}")
 
 
-def behave(obj, keys, map_grid):
+def behave(obj, keys, map_grid, objects_list=None):
     """Диспетчер behave(obj, keys, map) для типа объекта."""
     type_data = OBJECT_TYPES.get(obj['type'])
     if type_data and type_data['behave']:
-        type_data['behave'](obj, keys, map_grid)
+        type_data['behave'](obj, keys, map_grid, objects_list)
 
 
 def transform(obj):

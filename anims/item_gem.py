@@ -16,7 +16,7 @@ def init(obj, params):
     obj['has_friction'] = True
 
 
-def behave(obj, keys, map_grid):
+def behave(obj, keys, map_grid, objects_list=None):
     pass
 
 
