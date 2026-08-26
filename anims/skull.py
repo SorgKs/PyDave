@@ -1,32 +1,38 @@
 #!/usr/bin/env python3
-"""anims/skull.py — Череп: статичный декоративный объект."""
-from anims import register_object_type
+"""anims/skull.py — декоративный объект."""
+from anims import register_object_type, LAYER_NONE
 
-HITBOX = (16, 16)
-ANCHOR_TYPE = 'center'
-LAYER = 0
-NAME = 'skull'
+HITBOX = (1.0, 1.0)
+
+
+def sprites_map():
+    return {'skull': 'skull.bmp'}
+
 
 def init(obj, params):
-    return ['skull']
+    obj['has_gravity'] = False
+    obj['has_friction'] = False
 
-def behave(obj, input_data, ctx):
+
+def behave(obj, keys, map_grid):
     pass
+
 
 def transform(obj):
     obj['collisions'] = []
-
-def get_sprite(obj):
     return 'skull'
 
+
 register_object_type(
-    name=NAME,
+    name='skull',
     init_func=init,
     behave_func=behave,
     transform_func=transform,
-    get_sprite_func=get_sprite,
+    sprites_map_func=sprites_map,
     hitbox=HITBOX,
-    anchor_type=ANCHOR_TYPE,
-    layer=LAYER,
+    anchor_type='center',
+    layer=LAYER_NONE,
     tags=['decoration'],
+    has_gravity=False,
+    has_friction=False,
 )

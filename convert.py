@@ -66,7 +66,8 @@ def write_bmp(path, px, w, h):
         row = bytearray()
         for x in range(w):
             r, g, b, a = px[y][x]
-            row += bytes([255, 0, 255]) if a < 128 or (r+g+b) == 0 else bytes([b, g, r])
+            # Только alpha: чёрный (0,0,0) остаётся чёрным (не как у dave раньше через (r+g+b)==0)
+            row += bytes([255, 0, 255]) if a < 128 else bytes([b, g, r])
         while len(row) % 4: row += b'\x00'
         pix += row
     open(path, 'wb').write(hdr + info + pix)

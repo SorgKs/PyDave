@@ -1,5 +1,7 @@
-# assets.py — загрузка спрайтов/звуков
-import os, sys
+# assets.py — загрузка тайлов и спрайтов объектов
+import os
+import sys
+
 try:
     import pygame
 except ImportError:
@@ -10,15 +12,9 @@ from config import BG_TRANSPARENT, MUSIC_VOL
 BASE = os.path.dirname(os.path.abspath(__file__))
 ASSETS_DIR = os.path.join(BASE, 'assets')
 
-# Только статические спрайты (не анимации)
-# Анимации загружаются через ATLAS в anims/*.py
-SPRITES = (
-    # Dave (базовые)
-    'dave_idle', 'dave_walk1', 'dave_walk2', 'dave_walk3', 'dave_walk4',
-    'dave_jump', 'dave_fall', 'dave_shoot', 'dave_shoot2',
-    'dave_aimup', 'dave_aimdown',
+# Статические/UI/декор спрайты (не из anims.sprites_map)
+STATIC_SPRITES = (
     'dave_door1', 'dave_door2', 'dave_door3', 'dave_door4',
-    # Death (кадры смерти)
     'death_00', 'death_01', 'death_02', 'death_03', 'death_04',
     'death_05', 'death_06', 'death_07', 'death_08', 'death_09',
     'death_10', 'death_11', 'death_12', 'death_13', 'death_14',
@@ -27,23 +23,17 @@ SPRITES = (
     'death_25', 'death_26', 'death_27', 'death_28', 'death_29',
     'death_30', 'death_31', 'death_32', 'death_33', 'death_34',
     'death_35', 'death_36', 'death_37', 'death_38', 'death_39',
-    # Предметы
     'key', 'gem', 'heart', 'skull',
-    # Тайлы (статические)
     'brick0', 'brick1', 'brick2',
     'brick_top0', 'brick_top1', 'brick_top2',
     'slab', 'spike', 'door_closed', 'door_open',
     'tile_wall', 'tile_wall_top', 'tile_plat',
-    # Ступени (статические тайлы)
     'stair_00', 'stair_01', 'stair_02', 'stair_03', 'stair_04',
     'stair_05', 'stair_06', 'stair_07', 'stair_08', 'stair_09',
     'stair_10', 'stair_11',
-    # Боеприпасы
     'ammo_0', 'ammo_1', 'ammo_2', 'ammo_3', 'ammo_4',
     'ammo_5', 'ammo_6', 'ammo_7', 'ammo_8',
-    # Двери
     'door1_closed', 'door1_open', 'door2_closed', 'door2_open',
-    # Объекты
     'obj_000', 'obj_001', 'obj_002', 'obj_003', 'obj_004',
     'obj_005', 'obj_006', 'obj_007', 'obj_008', 'obj_009',
     'obj_010', 'obj_011', 'obj_012', 'obj_013', 'obj_014',
@@ -52,7 +42,6 @@ SPRITES = (
     'obj_025', 'obj_026', 'obj_027', 'obj_028', 'obj_029',
 )
 
-# Аддитивные спрайты (свечения, фон)
 ADDITIVE_SPRITES = (
     'glow_torch', 'glow_ghost', 'glow_key', 'glow_door',
     'glow_moon', 'fog', 'moon', 'sky',
@@ -71,12 +60,41 @@ def _check_assets():
             sys.exit('Папка assets не найдена. Сначала выполните:  python gen_assets.py')
 
 
-def load_image(name, colorkey=False):
+def load_image(name, colorkey=False, scale=1):
+    """
+    name — имя файла (с расширением) или stem.
+    colorkey: прозрачный только BG_TRANSPARENT (magenta);
+              чёрный (0,0,0) и любые другие цвета непрозрачны.
+    scale: целочисленный масштаб (файлы на диске не меняются).
+    """
+    if not name.endswith(('.bmp', '.png')):
+        name = name + '.bmp'
     path = os.path.join(ASSETS_DIR, 'sprites', name)
-    s = pygame.image.load(path)
+    # convert() до ключа — корректный map_rgb для display-формата
+    s = pygame.image.load(path).convert()
+    if scale != 1:
+        w, h = s.get_size()
+        s = pygame.transform.scale(s, (w * scale, h * scale))
     if colorkey:
-        s.set_colorkey(BG_TRANSPARENT)
-    return s.convert()
+        s = _magenta_key_only(s)
+    return s
+
+
+def _magenta_key_only(surf):
+    """
+    Делает прозрачным только точный BG_TRANSPARENT.
+    Чёрные пиксели остаются чёрными (alpha=255).
+    """
+    out = surf.convert_alpha()
+    rgb = pygame.surfarray.pixels3d(out)
+    alpha = pygame.surfarray.pixels_alpha(out)
+    r, g, b = BG_TRANSPARENT
+    mask = (rgb[:, :, 0] == r) & (rgb[:, :, 1] == g) & (rgb[:, :, 2] == b)
+    alpha[:, :] = 255
+    alpha[mask] = 0
+    del rgb, alpha
+    # colorkey не ставим — иначе SDL может снова затронуть чёрный
+    return out
 
 
 def load_sound(name):
@@ -87,37 +105,56 @@ def load_sound(name):
         return None
 
 
-def load_all_sprites():
+def load_static_sprites():
+    """Тайлы/UI/декор: assets грузит сам."""
     imgs = {}
-    for n in SPRITES:
+    for n in STATIC_SPRITES:
         try:
             imgs[n] = load_image(n + '.bmp', colorkey=True)
         except FileNotFoundError:
             print(f"⚠️  {n}.bmp не найден")
-            continue
     for n in ADDITIVE_SPRITES:
         try:
             imgs[n] = load_image(n + '.bmp', colorkey=False)
         except FileNotFoundError:
             print(f"⚠️  {n}.bmp не найден")
-            continue
+    return imgs
+
+
+def load_object_sprites():
+    """
+    Агрегирует sprites_map() всех типов anims → ключ → surface.
+    Типы должны быть уже зарегистрированы (import anims.*).
+    """
+    from anims import collect_sprites_maps
+    imgs = {}
+    for key, filename in collect_sprites_maps().items():
+        try:
+            imgs[key] = load_image(filename, colorkey=True)
+        except FileNotFoundError:
+            print(f"⚠️  спрайт объекта {key} ({filename}) не найден")
+    return imgs
+
+
+def load_all_sprites():
+    """Тайлы/статика + спрайты объектов из sprites_map."""
+    imgs = load_static_sprites()
+    for key, surf in load_object_sprites().items():
+        if key not in imgs:
+            imgs[key] = surf
     return imgs
 
 
 def make_white_variant(surface):
-    """Создаёт "ослепляющую" копию спрайта (для эффекта попадания)."""
-    ck = surface.get_colorkey()
+    """«Ослепляющая» копия спрайта (урон). Сохраняет alpha (чёрный не теряется)."""
     w = surface.copy()
     w.fill((0, 0, 0), special_flags=pygame.BLEND_RGB_MULT)
     w.fill((255, 255, 255), special_flags=pygame.BLEND_RGB_ADD)
-    if ck:
-        w.set_colorkey(ck)
     return w
 
 
 def load_all_sounds():
     sfx = {}
-    music = None
     for n in SOUNDS:
         sfx[n] = load_sound(n + '.wav')
     music = load_sound(MUSIC_NAME + '.wav')

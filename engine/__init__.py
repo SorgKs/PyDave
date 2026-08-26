@@ -1,10 +1,8 @@
-# engine/__init__.py — новый игровой движок (рефакторинг)
+# engine/__init__.py — игровой движок
 """
-Архитектура:
-- physics: универсальная физика + коллизии (2 прохода)
-- anims/obj: логика объектов (init, behave, transform, get_sprite)
-- render: отрисовка тайлов и объектов
-- level: источник истины (генерирует tilemap и surface_map)
+physics: движение и коллизии (тайлы, 2 прохода)
+objects: хелперы (без фабрики; фабрика в anims)
+render: отрисовка от якоря
 """
 
 __all__ = ['physics', 'objects', 'render']
