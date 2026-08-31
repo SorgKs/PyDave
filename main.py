@@ -26,9 +26,7 @@ from anims import behave, transform
 import anims.dave
 import anims.zombie  # noqa: F401
 import anims.goblin  # noqa: F401
-import anims.ghost  # noqa: F401
-import anims.skull  # noqa: F401
-import anims.item_gem  # noqa: F401
+import anims.muzzle  # noqa: F401 — spark/smoke кадры выстрела
 
 import text
 text.init_font()
@@ -101,6 +99,7 @@ cam_x = cam_y = 0.0
 shake = 0.0
 state, state_t, gtime = 'title', 0, 0
 parts, texts = [], []
+muzzle_effects = []  # эффекты огня/дыма при выстреле
 view = pygame.Surface((VW, VH))
 # ключ спрайта за кадр: id(obj) → str
 frame_sprites = {}
@@ -164,6 +163,7 @@ def reset_game():
 
     parts.clear()
     texts.clear()
+    muzzle_effects.clear()
     death_scene = None
     state = 'play'
     state_t = 0
@@ -184,6 +184,33 @@ def add_parts(x, y, n, col, spd=0.12, g=0.005):
             'col': col,
             'sz': 1 + random.random() * 2,
         })
+
+
+def spawn_muzzle_flash(x, y, aim_up=False, aim_down=False):
+    """Создаёт эффекты у дула: огонь (3 кадра) → дым (3 кадра), 6 фаз всего.
+    Точная копия webdave: один Sprite с 6 кадрами, animSpeed=7, ~0.4с."""
+    muzzle_effects.append({
+        'x': float(x),
+        'y': float(y),
+        'frames': ['spark_0', 'spark_1', 'spark_2', 'smoke_0', 'smoke_1', 'smoke_2'],
+        'frame': 0,
+        'life': 0,
+        'max': int(FPS * 0.4),
+        'kind': 'muzzle',
+    })
+
+
+def spawn_hit_spark(x, y):
+    """Спавн искры в точке попадания (как SparkSFX в webdave)."""
+    muzzle_effects.append({
+        'x': float(x),
+        'y': float(y),
+        'frames': ['spark_0'],
+        'frame': 0,
+        'life': 0,
+        'max': int(FPS * 0.12),
+        'kind': 'spark',
+    })
 
 
 def add_text(x, y, t, col='#fff'):
@@ -300,6 +327,12 @@ def _handle_dave_side_effects(obj):
             _shot_particles(fx)
             if fx.get('kind') == 'enemy':
                 play('hit')
+            # Muzzle flash эффект
+            spawn_muzzle_flash(
+                fx['x0'], fx['y0'],
+                aim_up=obj.get('shoot_buffer_aim_up', False),
+                aim_down=obj.get('shoot_buffer_aim_down', False),
+            )
             obj['pending_shot_fx'] = None
     if obj.get('pending_reload_sfx'):
         play('reload')
@@ -314,6 +347,17 @@ def update(pressed, held):
 
     gtime += 1
     state_t += 1
+
+    # Обновляем эффекты muzzle flash
+    for fx in muzzle_effects:
+        fx['life'] += 1
+        # Переключение кадров пропорционально времени жизни
+        frames = fx.get('frames', [])
+        if frames:
+            progress = min(fx['life'] / fx['max'], 1.0)
+            fx['frame'] = min(int(progress * len(frames)), len(frames) - 1)
+    # Удаляем завершённые эффекты
+    muzzle_effects[:] = [fx for fx in muzzle_effects if fx['life'] < fx['max']]
 
     if pygame.K_m in pressed:
         MUTED[0] = not MUTED[0]
@@ -537,6 +581,18 @@ def render_frame():
         pygame.draw.rect(
             view, col,
             (p['x'] * TS - ox, p['y'] * TS - oy, p['sz'], p['sz']))
+
+    # Muzzle flash эффекты: огонь (spark) и дым (smoke) из спрайтов
+    for fx in muzzle_effects:
+        frames = fx.get('frames', [])
+        if frames:
+            frame_key = frames[fx['frame']]
+            if frame_key in I:
+                im = I[frame_key]
+                sw, sh = im.get_width(), im.get_height()
+                rx = int(fx['x'] * TS - sw / 2 - ox)
+                ry = int(fx['y'] * TS - sh / 2 - oy)
+                view.blit(im, (rx, ry))
 
     pygame.transform.scale(view, (WW, WH), screen)
 

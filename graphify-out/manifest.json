@@ -1,0 +1,327 @@
+{
+  "aim.py": {
+    "mtime": 1787679619.0727854,
+    "ast_hash": "b2ba6fb1f44622466f7eb936fb066aa1",
+    "semantic_hash": ""
+  },
+  "anims/__init__.py": {
+    "mtime": 1787680397.6922123,
+    "ast_hash": "3836f7e04771219eb07c83f085016b97",
+    "semantic_hash": ""
+  },
+  "anims/dave.py": {
+    "mtime": 1787680397.6942122,
+    "ast_hash": "93091c590f792cec66d9a3639ce1239e",
+    "semantic_hash": ""
+  },
+  "anims/ghost.py": {
+    "mtime": 1787680397.6942122,
+    "ast_hash": "00d52c8636dad0a001a55c6bd6bfc27e",
+    "semantic_hash": ""
+  },
+  "anims/goblin.py": {
+    "mtime": 1787680397.6942122,
+    "ast_hash": "d98a1b07216bae309b98b54304bb2cb5",
+    "semantic_hash": ""
+  },
+  "anims/skull.py": {
+    "mtime": 1787680397.6942122,
+    "ast_hash": "a0c356c305a6be3a6bb9e1ad8dc4fd76",
+    "semantic_hash": ""
+  },
+  "anims/zombie.py": {
+    "mtime": 1787680397.6942122,
+    "ast_hash": "fbcf2fac00bf556dbb57587a784f8811",
+    "semantic_hash": ""
+  },
+  "assets.py": {
+    "mtime": 1787679619.0737855,
+    "ast_hash": "8f2034b280930b48bc259388e4f0bb11",
+    "semantic_hash": ""
+  },
+  "config.py": {
+    "mtime": 1787679619.217782,
+    "ast_hash": "d8f96d7aa815831ddac9485946abf692",
+    "semantic_hash": ""
+  },
+  "convert.py": {
+    "mtime": 1787679619.217782,
+    "ast_hash": "1ba59080280e66026f453a3106b1ada1",
+    "semantic_hash": ""
+  },
+  "crop_and_pad.py": {
+    "mtime": 1787679619.217782,
+    "ast_hash": "720809814b66b75fe5bb6d40e0e168e2",
+    "semantic_hash": ""
+  },
+  "dave_files.py": {
+    "mtime": 1787679619.217782,
+    "ast_hash": "d76a929170f678e1256d87e6f97e500d",
+    "semantic_hash": ""
+  },
+  "debug_surface.py": {
+    "mtime": 1787679619.217782,
+    "ast_hash": "e4cf75d6985772d6e562617df8d421f0",
+    "semantic_hash": ""
+  },
+  "debug_tilemap.py": {
+    "mtime": 1787679619.217782,
+    "ast_hash": "c80efd2c0ca491ca3c9ab5e2024ee6ae",
+    "semantic_hash": ""
+  },
+  "door2.py": {
+    "mtime": 1787679619.218782,
+    "ast_hash": "57aaa7d780f22d3a65bee024c1d2106f",
+    "semantic_hash": ""
+  },
+  "engine/__init__.py": {
+    "mtime": 1787680397.6952121,
+    "ast_hash": "e98080ba7716790d86cf23a348b65c7c",
+    "semantic_hash": ""
+  },
+  "engine/objects.py": {
+    "mtime": 1787680397.6962123,
+    "ast_hash": "1a5f5f01bc5fdae131af6bca2373ad3e",
+    "semantic_hash": ""
+  },
+  "engine/physics.py": {
+    "mtime": 1787680397.6962123,
+    "ast_hash": "aed254174a30f68e9dbe246b86a7d24a",
+    "semantic_hash": ""
+  },
+  "engine/render.py": {
+    "mtime": 1787680397.6962123,
+    "ast_hash": "1a4ec27dac1891b596c2b2ba53f6b9be",
+    "semantic_hash": ""
+  },
+  "find_atlas.py": {
+    "mtime": 1787679619.218782,
+    "ast_hash": "b93314d5e32236ea7c53a3cb0088cc3b",
+    "semantic_hash": ""
+  },
+  "level.py": {
+    "mtime": 1787679619.218782,
+    "ast_hash": "210a4a33cf45af4025ea781e2836f0f4",
+    "semantic_hash": ""
+  },
+  "levels.py": {
+    "mtime": 1787679619.218782,
+    "ast_hash": "fc667505010000eb34196c76ea638f55",
+    "semantic_hash": ""
+  },
+  "main.py": {
+    "mtime": 1787680397.6962123,
+    "ast_hash": "ce8c651fcad9c8248cc6965fc9078605",
+    "semantic_hash": ""
+  },
+  "open_doors.py": {
+    "mtime": 1787679619.218782,
+    "ast_hash": "f7b16d4771a678e32529ea2ee0a6af5d",
+    "semantic_hash": ""
+  },
+  "pad_to_grid.py": {
+    "mtime": 1787679619.218782,
+    "ast_hash": "f7c84a967aba187e834d568419f8bd8c",
+    "semantic_hash": ""
+  },
+  "physics.py": {
+    "mtime": 1787679619.2197819,
+    "ast_hash": "d8782cb4dcfb47b8811856be14211a61",
+    "semantic_hash": ""
+  },
+  "process_doors.py": {
+    "mtime": 1787679619.2197819,
+    "ast_hash": "4cb0cf615660ffc4d737d490f07ead91",
+    "semantic_hash": ""
+  },
+  "split.py": {
+    "mtime": 1787679619.2197819,
+    "ast_hash": "6b56300a89033ab5cf92db8643e4b0fd",
+    "semantic_hash": ""
+  },
+  "split_dave.py": {
+    "mtime": 1787679619.2197819,
+    "ast_hash": "273f9cf3d65905e8d362a01a680ddb9c",
+    "semantic_hash": ""
+  },
+  "split_step.py": {
+    "mtime": 1787679619.2197819,
+    "ast_hash": "5138d1602ee8316a2ccc9773712c6d78",
+    "semantic_hash": ""
+  },
+  "strings.py": {
+    "mtime": 1787679619.2197819,
+    "ast_hash": "93fdba9ede5dc39b3c0d5884c287268b",
+    "semantic_hash": ""
+  },
+  "surface_map.py": {
+    "mtime": 1787679619.2197819,
+    "ast_hash": "b7c50318df5f37fe11f7e2773cf83879",
+    "semantic_hash": ""
+  },
+  "test.py": {
+    "mtime": 1787679619.2197819,
+    "ast_hash": "694f391dafcddd745ac15b77567f9fc7",
+    "semantic_hash": ""
+  },
+  "text.py": {
+    "mtime": 1787679619.220782,
+    "ast_hash": "c4f4f92b89f8635e5fb1977cef6be8ee",
+    "semantic_hash": ""
+  },
+  "tilemap.py": {
+    "mtime": 1787679619.220782,
+    "ast_hash": "ae3f732578f9fd174b5e576763cb3ebb",
+    "semantic_hash": ""
+  },
+  "tiles.py": {
+    "mtime": 1787679619.220782,
+    "ast_hash": "747c82925f78ab48748a4943a7fa0fee",
+    "semantic_hash": ""
+  },
+  "trim_png.py": {
+    "mtime": 1787679619.220782,
+    "ast_hash": "1f3c5614737ad8f0e9aa240b066b4182",
+    "semantic_hash": ""
+  },
+  "NOTES.md": {
+    "mtime": 1787679619.0727854,
+    "ast_hash": "a5a33f3b73a1add5d0067ea41ab76c6f",
+    "semantic_hash": ""
+  },
+  "assets/sheets/levels.txt": {
+    "mtime": 1787679619.0777853,
+    "ast_hash": "f902419c08c51a52d41cc011b8078f14",
+    "semantic_hash": ""
+  },
+  "assets/sprites/OBJ_INDEX.txt": {
+    "mtime": 1787679619.1087847,
+    "ast_hash": "06b9e1683b6c47222cb3e85600a75064",
+    "semantic_hash": ""
+  },
+  "concept_refactor.md": {
+    "mtime": 1787680397.6942122,
+    "ast_hash": "30c7f6744edfba529e677a0b3aa14443",
+    "semantic_hash": ""
+  },
+  "docs/api-decisions.md": {
+    "mtime": 1787686175.433008,
+    "ast_hash": "01142bf25895b45e5a31b49f79b718c9",
+    "semantic_hash": ""
+  },
+  "docs/api-open-questions.md": {
+    "mtime": 1787686175.433008,
+    "ast_hash": "36e667442c662b831e494281b559f601",
+    "semantic_hash": ""
+  },
+  "engine/README.md": {
+    "mtime": 1787680397.6952121,
+    "ast_hash": "d8a54a2448e12fa6c234c1c092a95edb",
+    "semantic_hash": ""
+  },
+  "assets/sheets/dave.png": {
+    "mtime": 1787679619.0747855,
+    "ast_hash": "175f7c74f27a194e0d801d59d569be6c",
+    "semantic_hash": ""
+  },
+  "assets/sheets/deaths-of-dave.png": {
+    "mtime": 1787679619.0757854,
+    "ast_hash": "c6dd6aa716052cee0fdd0e9389ddb39a",
+    "semantic_hash": ""
+  },
+  "assets/sheets/door1.png": {
+    "mtime": 1787679619.0757854,
+    "ast_hash": "0e0fb1bd55023445653732a3788f0438",
+    "semantic_hash": ""
+  },
+  "assets/sheets/level01.png": {
+    "mtime": 1787679619.0767853,
+    "ast_hash": "819d52804ab8e950a9adb955b2c1ce58",
+    "semantic_hash": ""
+  },
+  "assets/sheets/level01_annotated.png": {
+    "mtime": 1787679619.0777853,
+    "ast_hash": "4cea3798fdd61575b2f300656f682100",
+    "semantic_hash": ""
+  },
+  "assets/sheets/step.png": {
+    "mtime": 1787679619.1017847,
+    "ast_hash": "f20ad4aad0ff4bd4ffc819cc4543fab2",
+    "semantic_hash": ""
+  },
+  "assets/sprites/Dave.png": {
+    "mtime": 1787679619.1087847,
+    "ast_hash": "3f20ec5805450422f5fc013fa493df01",
+    "semantic_hash": ""
+  },
+  "assets/sprites/sky.png": {
+    "mtime": 1787679619.1277843,
+    "ast_hash": "ec66b42044c02f5134fe5f64f341cf5a",
+    "semantic_hash": ""
+  },
+  "door2.png": {
+    "mtime": 1787679619.217782,
+    "ast_hash": "d0613c757bb7d51d2cdb143348439a1a",
+    "semantic_hash": ""
+  },
+  "assets/sounds/die.wav": {
+    "mtime": 1787679619.1037848,
+    "ast_hash": "365f7aa45df37238d14884c83bc696fb",
+    "semantic_hash": ""
+  },
+  "assets/sounds/door.wav": {
+    "mtime": 1787679619.1047847,
+    "ast_hash": "d7fb6e38861b030dca231c774447baa1",
+    "semantic_hash": ""
+  },
+  "assets/sounds/gem.wav": {
+    "mtime": 1787679619.1047847,
+    "ast_hash": "36d3244fc89f1f27a487114a70fd7d78",
+    "semantic_hash": ""
+  },
+  "assets/sounds/heart.wav": {
+    "mtime": 1787679619.1047847,
+    "ast_hash": "6b8bbfc9f57bf127c1f7b219c2aed7ff",
+    "semantic_hash": ""
+  },
+  "assets/sounds/hit.wav": {
+    "mtime": 1787679619.1047847,
+    "ast_hash": "84adbf1d460f56642c6770b7ca0794d5",
+    "semantic_hash": ""
+  },
+  "assets/sounds/hurt.wav": {
+    "mtime": 1787679619.1057847,
+    "ast_hash": "ff8d0e6b1756fcd3f5d98ce36e07735c",
+    "semantic_hash": ""
+  },
+  "assets/sounds/jump.wav": {
+    "mtime": 1787679619.1057847,
+    "ast_hash": "ee88f050f8c9a232e9a3c2bba8cd197b",
+    "semantic_hash": ""
+  },
+  "assets/sounds/key.wav": {
+    "mtime": 1787679619.1057847,
+    "ast_hash": "c03beee5d259742b3e66d13dce877b91",
+    "semantic_hash": ""
+  },
+  "assets/sounds/kill.wav": {
+    "mtime": 1787679619.1057847,
+    "ast_hash": "1e705c948489421f965dba4678ea7014",
+    "semantic_hash": ""
+  },
+  "assets/sounds/land.wav": {
+    "mtime": 1787679619.1057847,
+    "ast_hash": "32cc06d10c4aaa1ce735737ea8399482",
+    "semantic_hash": ""
+  },
+  "assets/sounds/music.wav": {
+    "mtime": 1787679619.1087847,
+    "ast_hash": "e6c4cf037ed0830702f38ae0776746e3",
+    "semantic_hash": ""
+  },
+  "assets/sounds/shoot.wav": {
+    "mtime": 1787679619.1087847,
+    "ast_hash": "d51eac15bbecb2260b6f1209f27028c3",
+    "semantic_hash": ""
+  }
+}

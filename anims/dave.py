@@ -21,7 +21,7 @@ SHOOT_COOL_FRAMES = FPS // 2       # 0.5 с — до следующего выс
 SHOOT_BUFFER_FRAMES = int(FPS * 0.2)  # запоминание нажатия выстрела
 IDLETIMEOUT_FRAMES = int(FPS * 0.4)  # простой перед автоперезарядкой
 RELOAD_ANIM_SPEED = max(1, round(FPS / 3.6))  # webdave animSpeed=3.6
-RELOAD_SPRITE = ('dave_reload1', 'dave_reload2')
+RELOAD_SPRITE = ('reload_0', 'reload_1')
 FRICTION_OWN_G = 0.025
 FRICTION_OWN_A = 0.00625
 
@@ -62,10 +62,13 @@ ANIMS = {
     'walk': (['dave_walk1', 'dave_walk2', 'dave_walk3', 'dave_walk4'], 10),
     'jump': (['dave_jump'], 1),
     'fall': (['dave_fall'], 1),
-    'shoot': (['dave_shoot', 'dave_shoot2'], 6),
+    'shoot': (['shoot_straight_0', 'shoot_straight_1'], 3),
+    'shoot_up': (['shoot_up_0', 'shoot_up_1'], 3),
+    'shoot_down': (['shoot_down_0', 'shoot_down_1'], 3),
     'reload': (list(RELOAD_SPRITE), RELOAD_ANIM_SPEED),
-    'aimup': (['dave_aimup'], 1),
-    'aimdown': (['dave_aimdown'], 1),
+    'aimup': (['aim_up'], 1),
+    'aimdown': (['aim_down'], 1),
+    'aimstraight': (['aim_straight'], 1),
 }
 
 
@@ -78,12 +81,17 @@ def sprites_map():
         'dave_walk4': 'dave_walk4.bmp',
         'dave_jump': 'dave_jump.bmp',
         'dave_fall': 'dave_fall.bmp',
-        'dave_shoot': 'dave_shoot.bmp',
-        'dave_shoot2': 'dave_shoot2.bmp',
-        'dave_reload1': 'dave_reload1.bmp',
-        'dave_reload2': 'dave_reload2.bmp',
-        'dave_aimup': 'dave_aimup.bmp',
-        'dave_aimdown': 'dave_aimdown.bmp',
+        'shoot_straight_0': 'shoot_straight_0.bmp',
+        'shoot_straight_1': 'shoot_straight_1.bmp',
+        'shoot_up_0': 'shoot_up_0.bmp',
+        'shoot_up_1': 'shoot_up_1.bmp',
+        'shoot_down_0': 'shoot_down_0.bmp',
+        'shoot_down_1': 'shoot_down_1.bmp',
+        'reload_0': 'reload_0.bmp',
+        'reload_1': 'reload_1.bmp',
+        'aim_up': 'aim_up.bmp',
+        'aim_down': 'aim_down.bmp',
+        'aim_straight': 'aim_straight.bmp',
     }
 
 
@@ -516,12 +524,17 @@ def transform(obj):
 
     if obj.get('reloading'):
         state = 'reload'
+    elif obj.get('shoot_stop', 0) > 0:
+        if obj.get('shoot_aim_up'):
+            state = 'shoot_up'
+        elif obj.get('shoot_aim_down'):
+            state = 'shoot_down'
+        else:
+            state = 'shoot'
     elif obj.get('aim_up'):
         state = 'aimup'
     elif obj.get('aim_down'):
         state = 'aimdown'
-    elif obj.get('shoot_stop', 0) > 0:
-        state = 'shoot'
     elif not obj['onG']:
         state = 'jump'
     elif abs(obj['vx']) > 0.02:
@@ -531,7 +544,7 @@ def transform(obj):
 
     obj['state'] = state
     frames, speed = ANIMS.get(state, ANIMS['idle'])
-    if state == 'shoot':
+    if state in ('shoot', 'shoot_up', 'shoot_down'):
         w = _weapon(obj)
         elapsed = w['shoot_stop'] - obj.get('shoot_stop', 0)
         idx = min(elapsed // w['shoot_anim_speed'], len(frames) - 1)

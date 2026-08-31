@@ -6,7 +6,6 @@ from assets import ASSETS_DIR, load_image
 
 def load_tiles():
     tiles = {}
-    print("🔄 Загрузка тайлов...")
 
     # 1. Стены, платформы, двери (заглушки, если нет)
     base_names = ('tile_wall', 'tile_wall_top', 'tile_plat',
@@ -29,7 +28,6 @@ def load_tiles():
                 surf = pygame.image.load(path).convert()
                 surf.set_colorkey(BG_TRANSPARENT)
                 tiles[name] = surf
-                print(f"✅ {name} загружен")
             except Exception:
                 tiles[name] = pygame.Surface((TS, TS))
                 tiles[name].fill((120, 100, 80))
@@ -48,7 +46,6 @@ def load_tiles():
             surf = pygame.image.load(floor_path).convert()
             surf.set_colorkey(BG_TRANSPARENT)
             tiles['floor'] = surf
-            print(f"✅ floor загружен из {os.path.basename(floor_path)}")
         except Exception as e:
             print(f"⚠️ Ошибка загрузки пола: {e}")
             surf = pygame.Surface((TS, TS))
@@ -69,7 +66,6 @@ def load_tiles():
             try:
                 surf = pygame.image.load(path).convert()
                 surf.set_colorkey(BG_TRANSPARENT)
-                print(f"✅ {name} загружен")
                 return surf
             except:
                 pass
@@ -91,7 +87,6 @@ def load_tiles():
             try:
                 surf = pygame.image.load(path).convert()
                 surf.set_colorkey(BG_TRANSPARENT)
-                print(f"✅ {name} загружен")
                 return surf
             except Exception:
                 pass
@@ -115,7 +110,6 @@ def load_tiles():
             surf = pygame.image.load(air_path).convert()
             surf.set_colorkey(BG_TRANSPARENT)
             tiles['air'] = surf
-            print("✅ air загружен")
         except:
             tiles['air'] = pygame.Surface((TS, TS))
             tiles['air'].fill((30, 30, 30))
@@ -132,5 +126,4 @@ def load_tiles():
         except:
             pass
 
-    print(f"📦 Загружено тайлов: {len(tiles)}")
     return tiles

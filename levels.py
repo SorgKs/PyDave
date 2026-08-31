@@ -22,9 +22,7 @@ def parse_objects(map_lines):
     import anims.dave  # noqa: F401
     import anims.zombie  # noqa: F401
     import anims.goblin  # noqa: F401
-    import anims.ghost  # noqa: F401
-    import anims.skull  # noqa: F401
-    import anims.item_gem  # noqa: F401
+    # skull/item_gem: спрайты не извлечены — отключены
 
     cols = max(len(r) for r in map_lines)
 
