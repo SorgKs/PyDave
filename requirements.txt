@@ -1,0 +1,4 @@
+pygame==2.6.1
+numpy==2.4.6
+Pillow==12.3.0
+requests==2.34.2
