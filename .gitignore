@@ -12,6 +12,9 @@ build/
 surface_log.txt
 tilemap_dump.txt
 
+# Backup files
+*.backup
+
 # OS / IDE
 .DS_Store
 Thumbs.db

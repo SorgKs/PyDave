@@ -15,8 +15,26 @@ class TileMap:
         self.cols = cols
         self.grid = [['' for _ in range(cols)] for _ in range(rows)]
 
-        # Плейсхолдеры объектов — заменяем на обои, чтобы не было дыр
-        object_placeholders = set('DKSoTdGBH')
+        # Плейсхолдеры объектов — заменяем на фон только при достаточном окружении
+        object_placeholders = set('DKSoTdGBHZk')
+
+        def bg_neighbors(y, x):
+            """Считает соседей-фон (A или .) в исходной карте."""
+            air = wp = 0
+            for dy, dx in ((-1, 0), (1, 0), (0, -1), (0, 1)):
+                ny, nx = y + dy, x + dx
+                if 0 <= ny < rows and 0 <= nx < cols:
+                    nch = map_lines[ny].ljust(cols, '.')[nx]
+                    if nch == 'A':
+                        air += 1
+                    elif nch == '.':
+                        wp += 1
+            return air + wp, air, wp
+
+        def placeholder_tile(x, y, air, wp):
+            if air > wp:
+                return 'air'
+            return 'wallpaper_a' if (x + y) % 2 == 0 else 'wallpaper_b'
 
         for y, row in enumerate(map_lines):
             row = row.ljust(cols, '.')  # дополняем точками
@@ -49,13 +67,22 @@ class TileMap:
                             self.grid[y][cx] = 'step_04'
                         else:
                             self.grid[y][cx] = 'step_02'
-                elif ch == 'L' or ch == 'R':
-                    # Стена: проверяем, есть ли стена сверху (для wall_top)
-                    prev_row = map_lines[y-1] if y > 0 else ''
-                    prev_ch = prev_row[x] if x < len(prev_row) else '.'
-                    air = (prev_ch != 'L' and prev_ch != 'R')
-                    self.grid[y][x] = 'wall_top' if air else 'wall'
-                    x += 1
+                elif ch == 'L':
+                    # LL: первый → wall_left_a, второй → wall_left_b (не шахматка)
+                    start_x = x
+                    while x < cols and row[x] == 'L':
+                        x += 1
+                    for i in range(x - start_x):
+                        name = 'wall_left_a' if i % 2 == 0 else 'wall_left_b'
+                        self.grid[y][start_x + i] = name
+                elif ch == 'R':
+                    # RR: первый → wall_right_a, второй → wall_right_b
+                    start_x = x
+                    while x < cols and row[x] == 'R':
+                        x += 1
+                    for i in range(x - start_x):
+                        name = 'wall_right_a' if i % 2 == 0 else 'wall_right_b'
+                        self.grid[y][start_x + i] = name
                 elif ch == 'X':
                     self.grid[y][x] = 'floor'
                     x += 1
@@ -67,9 +94,12 @@ class TileMap:
                     self.grid[y][x] = 'wallpaper_a' if (x + y) % 2 == 0 else 'wallpaper_b'
                     x += 1
                 elif ch in object_placeholders:
-                    # Плейсхолдеры объектов (D, K, S, Z, G, B, T, o, H, d)
-                    # заменяем на обои, чтобы не было дыр в фоне
-                    self.grid[y][x] = 'wallpaper_a' if (x + y) % 2 == 0 else 'wallpaper_b'
+                    # Плейсхолдер → фон, если рядом ≥2 клеток воздуха или обоев
+                    total, air, wp = bg_neighbors(y, x)
+                    if total >= 2:
+                        self.grid[y][x] = placeholder_tile(x, y, air, wp)
+                    else:
+                        self.grid[y][x] = ''
                     x += 1
                 else:
                     # Любые другие символы — пустота

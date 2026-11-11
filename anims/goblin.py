@@ -1,58 +1,85 @@
 #!/usr/bin/env python3
-# anims/goblin.py — гоблин: анимации и логика
-import pygame
-import random
-import math
+"""anims/goblin.py — быстрый наземный враг."""
+from anims import register_object_type, LAYER_ENEMY
 
-NAME = 'goblin'
-FALLBACK = 'goblin_walk1'  # <-- ВАЖНО: fallback должен быть в списке ATLAS
-DEFAULT = 'walk'
-HITBOX = (12, 13)
-
-# Координаты спрайтов гоблина в dave.png (y=730)
-ATLAS = [
-    ('goblin_walk1', 0, 730, 48, 48),
-    ('goblin_walk2', 48, 730, 48, 48),
-    ('goblin_walk3', 96, 730, 48, 48),
-    ('goblin_walk4', 144, 730, 48, 48),
-    ('goblin_atk1', 192, 730, 48, 48),
-    ('goblin_atk2', 240, 730, 48, 48),
-    ('goblin_atk3', 288, 730, 48, 48),
-]
+HITBOX = (0.875, 1.75)  # 14×28 / 16
+SPEED = 0.0375
 
 ANIMS = {
-    'walk':   ((['goblin_walk1', 'goblin_walk2', 'goblin_walk3', 'goblin_walk4'],), 8),
-    'attack': ((['goblin_atk1', 'goblin_atk2', 'goblin_atk3'],), 10),
+    'walk': (['goblin_walk1', 'goblin_walk2', 'goblin_walk3', 'goblin_walk4'], 6),
 }
 
-def anim_state(e):
-    # Гоблин летает, поэтому всегда в состоянии walk
-    return 'walk'
 
-def update(e, ctx):
-    e['t'] += 1
-    
-    # Горизонтальное движение
-    speed = 0.6
-    e['vx'] = speed if e.get('face', 1) > 0 else -speed
-    
-    # Вертикальное движение (синусоида)
-    e['vy'] = math.sin(e['t'] * 0.05 + e.get('seed', 0)) * 0.5
-    
-    # Случайный разворот
-    if random.random() < 0.01:
-        e['face'] = -e.get('face', 1)
-    
-    # Применяем движение
-    ctx.move_x(e)
-    
-    # Гоблин не подчиняется гравитации, просто двигаем по Y
-    e['y'] += e['vy']
-    
-    # Ограничиваем в пределах уровня
-    if e['y'] < 50:
-        e['y'] = 50
-        e['vy'] = abs(e['vy'])
-    if e['y'] > ctx.ROWS * ctx.TS - 50:
-        e['y'] = ctx.ROWS * ctx.TS - 50
-        e['vy'] = -abs(e['vy'])
+def sprites_map():
+    return {
+        'goblin_walk1': 'goblin_walk1.bmp',
+        'goblin_walk2': 'goblin_walk2.bmp',
+        'goblin_walk3': 'goblin_walk3.bmp',
+        'goblin_walk4': 'goblin_walk4.bmp',
+        'goblin_atk1': 'goblin_atk1.bmp',
+        'goblin_atk2': 'goblin_atk2.bmp',
+        'goblin_atk3': 'goblin_atk3.bmp',
+    }
+
+
+def init(obj, params):
+    obj['speed'] = SPEED
+    obj['vx'] = SPEED
+    obj['face'] = 1
+    obj['hp'] = (params or {}).get('hp', 2)
+    obj['triggers'] = []
+    obj['dead'] = False
+
+
+def _map_tile(map_grid, tx, ty):
+    if ty < 0 or tx < 0:
+        return 1
+    if ty >= len(map_grid) or tx >= len(map_grid[0]):
+        return 0 if ty >= len(map_grid) else 1
+    return map_grid[ty][tx]
+
+
+def behave(obj, keys, map_grid, objects_list=None):
+    if obj.get('dead'):
+        obj['vx'] = 0
+        return
+    speed = abs(obj.get('speed', SPEED))
+    if obj.get('hitW'):
+        obj['face'] = -obj['face']
+    elif obj['onG']:
+        ahead_x = obj['x'] + obj['face'] * (obj['w'] / 2 + 0.1)
+        if _map_tile(map_grid, int(ahead_x), int(obj['y'])) not in (1, 2):
+            obj['face'] = -obj['face']
+    obj['vx'] = obj['face'] * speed
+
+
+def transform(obj):
+    for tr in obj.get('triggers', []):
+        if isinstance(tr, dict) and tr.get('name') == 'get_shot':
+            dmg = tr.get('damage', 1)
+            obj['hp'] = obj.get('hp', 1) - dmg
+            obj['flash'] = 12
+            if obj['hp'] <= 0:
+                obj['dead'] = True
+    obj['triggers'] = []
+    obj['collisions'] = []
+    if obj.get('dead'):
+        return None
+    frames, speed = ANIMS['walk']
+    idx = (obj.get('t', 0) // speed) % len(frames)
+    return frames[idx]
+
+
+register_object_type(
+    name='goblin',
+    init_func=init,
+    behave_func=behave,
+    transform_func=transform,
+    sprites_map_func=sprites_map,
+    hitbox=HITBOX,
+    anchor_type='ground',
+    layer=LAYER_ENEMY,
+    tags=['enemy', 'damage'],
+    has_gravity=True,
+    has_friction=False,
+)

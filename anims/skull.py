@@ -1,13 +1,38 @@
-# anims/skull.py — летучий череп: быстрый полёт
-import math
-NAME = 'skull'; FALLBACK = 'bat1'; DEFAULT = 'fly'
-HITBOX = (13, 9)
-ATLAS = []
-ANIMS = {'fly': ((['bat1', 'bat2'],), 8)}
+#!/usr/bin/env python3
+"""anims/skull.py — декоративный объект."""
+from anims import register_object_type, LAYER_NONE
 
-def anim_state(e): return 'fly'
+HITBOX = (1.0, 1.0)
 
-def update(e, ctx):
-    e['x'] = e['sx'] + math.sin(e['t'] * .03) * 85
-    e['y'] = e['sy'] + math.sin(e['t'] * .09) * 13
-    e['face'] = 1 if math.cos(e['t'] * .03) > 0 else -1
+
+def sprites_map():
+    return {'skull': 'skull.bmp'}
+
+
+def init(obj, params):
+    obj['has_gravity'] = False
+    obj['has_friction'] = False
+
+
+def behave(obj, keys, map_grid, objects_list=None):
+    pass
+
+
+def transform(obj):
+    obj['collisions'] = []
+    return 'skull'
+
+
+register_object_type(
+    name='skull',
+    init_func=init,
+    behave_func=behave,
+    transform_func=transform,
+    sprites_map_func=sprites_map,
+    hitbox=HITBOX,
+    anchor_type='center',
+    layer=LAYER_NONE,
+    tags=['decoration'],
+    has_gravity=False,
+    has_friction=False,
+)

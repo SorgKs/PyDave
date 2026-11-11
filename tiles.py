@@ -6,7 +6,6 @@ from assets import ASSETS_DIR, load_image
 
 def load_tiles():
     tiles = {}
-    print("🔄 Загрузка тайлов...")
 
     # 1. Стены, платформы, двери (заглушки, если нет)
     base_names = ('tile_wall', 'tile_wall_top', 'tile_plat',
@@ -29,7 +28,6 @@ def load_tiles():
                 surf = pygame.image.load(path).convert()
                 surf.set_colorkey(BG_TRANSPARENT)
                 tiles[name] = surf
-                print(f"✅ {name} загружен")
             except Exception:
                 tiles[name] = pygame.Surface((TS, TS))
                 tiles[name].fill((120, 100, 80))
@@ -48,7 +46,6 @@ def load_tiles():
             surf = pygame.image.load(floor_path).convert()
             surf.set_colorkey(BG_TRANSPARENT)
             tiles['floor'] = surf
-            print(f"✅ floor загружен из {os.path.basename(floor_path)}")
         except Exception as e:
             print(f"⚠️ Ошибка загрузки пола: {e}")
             surf = pygame.Surface((TS, TS))
@@ -69,7 +66,6 @@ def load_tiles():
             try:
                 surf = pygame.image.load(path).convert()
                 surf.set_colorkey(BG_TRANSPARENT)
-                print(f"✅ {name} загружен")
                 return surf
             except:
                 pass
@@ -84,6 +80,29 @@ def load_tiles():
     tiles['wallpaper_a'] = load_wallpaper('wallpaper_a', wp_a_path)
     tiles['wallpaper_b'] = load_wallpaper('wallpaper_b', wp_b_path)
 
+    # 4b. Левая/правая стена (LL / RR)
+    def load_wall_tile(name):
+        path = os.path.join(ASSETS_DIR, 'sprites', 'tiles', name + '.bmp')
+        if os.path.exists(path):
+            try:
+                surf = pygame.image.load(path).convert()
+                surf.set_colorkey(BG_TRANSPARENT)
+                return surf
+            except Exception:
+                pass
+        surf = pygame.Surface((TS, TS))
+        surf.fill((100, 80, 60))
+        print(f"⚠️ Заглушка для {name}")
+        return surf
+
+    tiles['wall_left_a'] = load_wall_tile('wall_left_a')
+    tiles['wall_left_b'] = load_wall_tile('wall_left_b')
+    tiles['wall_right_a'] = pygame.transform.flip(tiles['wall_left_a'], True, False)
+    tiles['wall_right_b'] = pygame.transform.flip(tiles['wall_left_b'], True, False)
+    # совместимость со старыми именами
+    tiles['wall'] = tiles['wall_left_a']
+    tiles['wall_top'] = tiles['wall_left_a']
+
     # 5. Воздух (air)
     air_path = os.path.join(ASSETS_DIR, 'sprites', 'tiles', 'air.bmp')
     if os.path.exists(air_path):
@@ -91,7 +110,6 @@ def load_tiles():
             surf = pygame.image.load(air_path).convert()
             surf.set_colorkey(BG_TRANSPARENT)
             tiles['air'] = surf
-            print("✅ air загружен")
         except:
             tiles['air'] = pygame.Surface((TS, TS))
             tiles['air'].fill((30, 30, 30))
@@ -108,5 +126,4 @@ def load_tiles():
         except:
             pass
 
-    print(f"📦 Загружено тайлов: {len(tiles)}")
     return tiles

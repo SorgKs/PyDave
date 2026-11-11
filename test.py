@@ -215,4 +215,9 @@ if os.path.exists(tile_72_path) and os.path.exists(tile_73_path):
         for col in range(grid_w):
             src_px = px1 if (row + col) % 2 == 0 else px2
             for y in range(16):
-                for x in range
+                for x in range(16):
+                    out_px[row * 16 + y][col * 16 + x] = src_px[y][x]
+
+    grid_path = os.path.join(SHEET_DIR, 'tiles_072_073_grid.bmp')
+    write_bmp(grid_path, out_px, out_w, out_h)
+    print(f'  + тестовая сетка: {grid_path} ({out_w}x{out_h})')

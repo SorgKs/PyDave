@@ -66,7 +66,8 @@ def write_bmp(path, px, w, h):
         row = bytearray()
         for x in range(w):
             r, g, b, a = px[y][x]
-            row += bytes([255, 0, 255]) if a < 128 or (r+g+b) == 0 else bytes([b, g, r])
+            # Только alpha: чёрный (0,0,0) остаётся чёрным (не как у dave раньше через (r+g+b)==0)
+            row += bytes([255, 0, 255]) if a < 128 else bytes([b, g, r])
         while len(row) % 4: row += b'\x00'
         pix += row
     open(path, 'wb').write(hdr + info + pix)
@@ -159,6 +160,8 @@ for mod in anims.ALL:
         cut_from(px, name, x0, y0, fw, fh, W, H)
 for i in range(9):
     cut_from(px, 'ammo_%d' % i, 1456 + 70 * i, 0, 70, 32, W, H)
+cut_from(px, 'dave_reload1', 768, 0, 48, 64, W, H, scale=1)
+cut_from(px, 'dave_reload2', 816, 0, 48, 64, W, H, scale=1)
 for i, x in enumerate((2086, 2122, 2158, 2194)):
     cut_from(px, 'dave_door%d' % (i + 1), x, 0, 36, 64, W, H)
 
