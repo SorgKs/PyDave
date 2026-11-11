@@ -1,3 +1,5 @@
+import ast
+from pathlib import Path
 import unittest
 from unittest.mock import patch
 
@@ -6,6 +8,12 @@ import anims.dave as dave
 import levels
 import tilemap
 from engine import objects, physics
+
+
+class UtilityScriptTests(unittest.TestCase):
+    def test_tile_extractor_script_has_valid_syntax(self):
+        source = Path(__file__).resolve().parents[1] / "test.py"
+        ast.parse(source.read_text(encoding="utf-8"), filename=str(source))
 
 
 class ObjectFactoryTests(unittest.TestCase):
